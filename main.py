@@ -110,8 +110,17 @@ async def cmd_currency(message: types.Message):
             f"RUB→TJS: {round(usd_tjs * rub, 2)}"
         )
     else:
-        text = (...
-)
-
+        text = (
             f"💱 Доллар→сомонӣ: {round(usd_tjs, 2)}\n"
             f"Евро→сомонӣ: {round(usd_tjs * eur, 2)}\n"
+            f"Рубл→сомонӣ: {round(usd_tjs * rub, 2)}"
+        )
+
+    await message.answer(text)
+
+# Запуск
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
