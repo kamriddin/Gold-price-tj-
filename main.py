@@ -110,10 +110,7 @@ async def cmd_currency(message: types.Message):
             f"RUB→TJS: {round(usd_tjs * rub, 2)}"
         )
     else:
-        text = (
-    "Hello, "
-    "this is a message"
-    " and here's more..."
+        text = (...
 )
 
             f"💱 Доллар→сомонӣ: {round(usd_tjs, 2)}\n"
