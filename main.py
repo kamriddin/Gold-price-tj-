@@ -4,21 +4,27 @@ import aiohttp
 import asyncio
 import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.enums import ParseMode
 
-# Получаем токен из переменной окружения
+# Загружаем переменные окружения из .env
+load_dotenv()
 API_TOKEN = os.getenv("API_TOKEN")
 
-# Настройка логирования
+# Проверка токена
+if not API_TOKEN:
+    raise ValueError("❌ API_TOKEN не установлен! Проверь .env файл.")
+
+# Логирование
 logging.basicConfig(level=logging.INFO)
 
 # Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 
-# Храним язык пользователя
+# Язык пользователя
 user_language = {}
 
 # Клавиатуры
@@ -39,7 +45,6 @@ buttons = {
     )
 }
 
-# Функция для получения цены золота с Kitco
 def get_kitco_gold_price():
     try:
         resp = requests.get("https://www.kitco.com/gold-price-today-usa/", headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
@@ -51,14 +56,12 @@ def get_kitco_gold_price():
     except:
         return None
 
-# Получаем курс валют
 async def fetch_currency_rates():
     async with aiohttp.ClientSession() as s:
         r = await s.get("https://api.exchangerate.host/latest?base=USD&symbols=TJS,EUR,RUB")
         data = await r.json()
     return data["rates"].get("TJS"), data["rates"].get("EUR"), data["rates"].get("RUB")
 
-# Переводим цену золота в сомони
 def calculate_gold_prices(oz_price, usd_tjs):
     if not oz_price or not usd_tjs:
         return None
@@ -66,13 +69,11 @@ def calculate_gold_prices(oz_price, usd_tjs):
     tjs_g = usd_g * usd_tjs
     return {p: round(tjs_g * (float(p) / 999.9), 2) for p in ["999.9", "750", "585", "375"]}
 
-# Команда /start
 @dp.message(F.text == "/start")
 async def cmd_start(message: types.Message):
     user_language[message.from_user.id] = "ru"
     await message.answer("Добро пожаловать!", reply_markup=buttons["ru"])
 
-# Смена языка
 @dp.message(F.text.startswith("🌐"))
 async def cmd_lang(message: types.Message):
     user_id = message.from_user.id
@@ -81,7 +82,6 @@ async def cmd_lang(message: types.Message):
     user_language[user_id] = new_lang
     await message.answer("Язык переключен." if new_lang == "ru" else "Забон иваз шуд.", reply_markup=buttons[new_lang])
 
-# Золото
 @dp.message(F.text.in_(["📈 Золото", "📈 Нархи тилло"]))
 async def cmd_gold(message: types.Message):
     lang = user_language.get(message.from_user.id, "ru")
@@ -97,7 +97,6 @@ async def cmd_gold(message: types.Message):
     text += f"\n\nБиржевая цена: ${oz_price}\nКурс USD: {round(usd_tjs, 2)} TJS"
     await message.answer(text)
 
-# Курсы валют
 @dp.message(F.text.in_(["💱 Курсы валют", "💱 Қурби асъор"]))
 async def cmd_currency(message: types.Message):
     lang = user_language.get(message.from_user.id, "ru")
@@ -118,7 +117,6 @@ async def cmd_currency(message: types.Message):
 
     await message.answer(text)
 
-# Запуск
 async def main():
     await dp.start_polling(bot)
 
