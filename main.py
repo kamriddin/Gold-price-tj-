@@ -1,4 +1,3 @@
-Kamariddin ., [14/07/2025 12:54]
 import os
 import logging
 import aiohttp
