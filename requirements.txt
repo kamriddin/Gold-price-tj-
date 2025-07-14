@@ -1,4 +1,4 @@
-aiogram==3.4.1
+aiogram==3.0.0b7
 aiohttp
 requests
 beautifulsoup4
