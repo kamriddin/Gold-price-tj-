@@ -8,26 +8,27 @@ from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.enums import ParseMode
+from aiohttp import web
 
-# Загружаем переменные окружения из .env
 load_dotenv()
 API_TOKEN = os.getenv("API_TOKEN")
-
-# Проверка токена
 if not API_TOKEN:
     raise ValueError("❌ API_TOKEN не установлен! Проверь .env файл.")
 
-# Логирование
+RAILWAY_STATIC_URL = os.getenv("RAILWAY_STATIC_URL")
+if not RAILWAY_STATIC_URL:
+    raise ValueError("❌ RAILWAY_STATIC_URL не установлен! Добавь в переменные окружения.")
+
+WEBHOOK_PATH = f"/webhook/{API_TOKEN}"
+WEBHOOK_URL = f"https://{RAILWAY_STATIC_URL}{WEBHOOK_PATH}"
+
 logging.basicConfig(level=logging.INFO)
 
-# Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 
-# Язык пользователя
 user_language = {}
 
-# Клавиатуры
 buttons = {
     "ru": ReplyKeyboardMarkup(
         keyboard=[
@@ -78,47 +79,4 @@ async def cmd_start(message: types.Message):
 async def cmd_lang(message: types.Message):
     user_id = message.from_user.id
     current_lang = user_language.get(user_id, "ru")
-    new_lang = "tj" if current_lang == "ru" else "ru"
-    user_language[user_id] = new_lang
-    await message.answer("Язык переключен." if new_lang == "ru" else "Забон иваз шуд.", reply_markup=buttons[new_lang])
-
-@dp.message(F.text.in_(["📈 Золото", "📈 Нархи тилло"]))
-async def cmd_gold(message: types.Message):
-    lang = user_language.get(message.from_user.id, "ru")
-    oz_price = await asyncio.to_thread(get_kitco_gold_price)
-    usd_tjs, eur, rub = await fetch_currency_rates()
-    prices = calculate_gold_prices(oz_price, usd_tjs)
-    if not prices:
-        await message.answer("⚠️ Ошибка данных" if lang == "ru" else "⚠️ Хато дар маълумот")
-        return
-
-    header = "💰 Цена на золото:" if lang == "ru" else "💰 Нархи тилло:"
-    text = header + "\n\n" + "\n".join([f"{k} — {v} сомонӣ" for k, v in prices.items()])
-    text += f"\n\nБиржевая цена: ${oz_price}\nКурс USD: {round(usd_tjs, 2)} TJS"
-    await message.answer(text)
-
-@dp.message(F.text.in_(["💱 Курсы валют", "💱 Қурби асъор"]))
-async def cmd_currency(message: types.Message):
-    lang = user_language.get(message.from_user.id, "ru")
-    usd_tjs, eur, rub = await fetch_currency_rates()
-
-    if lang == "ru":
-        text = (
-            f"💱 USD→TJS: {round(usd_tjs, 2)}\n"
-            f"EUR→TJS: {round(usd_tjs * eur, 2)}\n"
-            f"RUB→TJS: {round(usd_tjs * rub, 2)}"
-        )
-    else:
-        text = (
-            f"💱 Доллар→сомонӣ: {round(usd_tjs, 2)}\n"
-            f"Евро→сомонӣ: {round(usd_tjs * eur, 2)}\n"
-            f"Рубл→сомонӣ: {round(usd_tjs * rub, 2)}"
-        )
-
-    await message.answer(text)
-
-async def main():
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    new_lang_
